@@ -5,7 +5,13 @@
 \usepackage{amsmath}
 \usepackage{listings}
 \usepackage{xcolor}
-
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
 %New colors defined below
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -42,7 +48,7 @@
 \maketitle
 
     \chapter*{Introduction}
-        In this project I tried to implement a simulation of a two dimensional wave using the finite difference methods. Then using the simulation to study the behavior of waves as they pass through different medium with different velocities. 
+        For this project a simulation of a two dimensional wave was implemented using the finite difference methods. The simulations were used to study the behavior of waves as they pass through different mediums with different velocities. 
         
         
     \chapter*{The core parts of the project}
@@ -65,8 +71,7 @@
         \begin{equation}
             u_t(x, y, 0) = V(x, y)
         \end{equation}
-        \newpage
-        
+        \\
         The parts of the equation can be discretized as following:
         \begin{equation}
             \frac{\partial^2 u}{\partial t^2} = \frac{u^{n+1}_{i,j}-2u^{n}_{i,j}+u^{n-1}_{i,j}}{\Delta t^2}
@@ -80,6 +85,7 @@
         \begin{equation}
         \frac{\partial}{\partial y}(q(x, y)\frac{\partial u}{\partial y}) = \frac{1}{\Delta y^2}[q_{i,j+.5}(u^{n}_{i,j+1}-u^{n}_{i,j})-q_{i,j-.5}(u^{n}_{i,j}-u^{n}_{i,j-1})]
         \end{equation}
+        \newpage
         These equations can be plugged into \ref{eq:1}. I used SymPy to find $u^{n+1}_{i,j}$:
         \begin{lstlisting}[language=Python]
 t1 = ((b*dt-2)*u_nm1[i, j] +
@@ -96,9 +102,14 @@ t3 = dtdy2*(- q(dx*i, dy*(j-.5))*u_n[i, j] +
 u[i, j, n+1] = 1/(b*dt + 2)*(t1 + 2*t2 + 2*t3)
         \end{lstlisting}
         This means:\\ \\
-        \begin{multiline}
-        u^{n+1}_{i,j}= \frac{1}{b \Delta t + 2} (\\ 2 \frac{\Delta t^2}{\Delta x^2}[q_{i+.5,j}(u^{n}_{i+1,j}-u^{n}_{i,j})-q_{i-.5,j}(u^{n}_{i,j}-u^{n}_{i-1,j})] + \\ 2 \frac{\Delta t^2}{\Delta y^2}[q_{i,j+.5}(u^{n}_{i,j+1}-u^{n}_{i,j})-q_{i,j-.5}(u^{n}_{i,j}-u^{n}_{i,j-1})]+ \\ 2\Delta t^2 f^{n}_{i,j} + b \Delta t u^{n-1}_{i,j}+4 u^{n}_{i,j}-2u^{n-1}_{i,j} )
-        \end{multiline}
+        \begin{equation}
+        \begin{split}
+        u^{n+1}_{i,j}= \frac{1}{b \Delta t + 2} (\\
+        &\quad 2 \frac{\Delta t^2}{\Delta x^2}[q_{i+.5,j}(u^{n}_{i+1,j}-u^{n}_{i,j})-q_{i-.5,j}(u^{n}_{i,j}-u^{n}_{i-1,j})] + \\
+        &\quad 2 \frac{\Delta t^2}{\Delta y^2}[q_{i,j+.5}(u^{n}_{i,j+1}-u^{n}_{i,j})-q_{i,j-.5}(u^{n}_{i,j}-u^{n}_{i,j-1})]+ \\
+        &\quad 2\Delta t^2 f^{n}_{i,j} + b \Delta t u^{n-1}_{i,j}+4 u^{n}_{i,j}-2u^{n-1}_{i,j} )
+        \end{split}
+        \end{equation}
         \\ \\
         Using the discretised initial condition, a special formula for the first step can be derived:
         \begin{lstlisting}[language=Python]
@@ -115,7 +126,7 @@ t3 = dtdy2*(- q(dx*i, dy*(j-.5))*u_n[i, j] +
             q(dx*i, dy*(j+.5))*u_n[i, jp1])
 u[i, j, 1] = 0.5 * (t1 + t2 + t3)
         \end{lstlisting}
-        At the boundary points, the scheme as to be modified. This was done with the Neumann conditions and modifying indices:
+        At the boundary points, the scheme has to be modified. This was done with the Neumann conditions and modifying indices:
         \begin{itemize}
         \item $u^{n}_{i-1,j}=u^{n}_{i+1,j}; i = 0$
         \item $u^{n}_{i+1,j}=u^{n}_{i-2,j}; i = N_x$
@@ -130,14 +141,15 @@ u[i, j, 1] = 0.5 * (t1 + t2 + t3)
         \texttt{scheme\_ijn}
         and \texttt{scheme\_ij1} in the file 
         \texttt{wave2D.py}.
-        The vectorized version is quite simple, as it can be achieved with index lists and "advanced indexing" (see: \href{https://docs.scipy.org/doc/numpy-1.17.0/reference/arrays.indexing.html#advanced-indexing})
+        The vectorized version is quite simple, as it can be achieved with index lists and "advanced indexing" (see: \url{https://docs.scipy.org/doc/numpy-1.17.0/reference/arrays.indexing.html#advanced-indexing}{})
 
         
         \chapter*{Verification}
         
         \section*{Constant solution}
-        Let $u(x, y, t) = c$ be the exact solution. \\ This means $\frac{\partial u}{\partial t}=0$ and $\frac{\partial^2 u}{\partial t^2}=0$. Therefore $\frac{\partial}{\partial x}(q(x, y)\frac{\partial u}{\partial x})=\frac{\partial}{\partial y}(q(x, y)\frac{\partial u}{\partial y})=0$. The remaining term $f$in the wave equation must be $0$ as well. $q(x,y)$ could be any arbitrary function.
-        \\The constant solution is also a solution of the discrete equations:\\\\
+        Let $u(x, y, t) = c$ be the exact solution. \\ This means $\frac{\partial u}{\partial t}=0$ and $\frac{\partial^2 u}{\partial t^2}=0$.
+        Therefore $\frac{\partial}{\partial x}(q(x, y)\frac{\partial u}{\partial x})=\frac{\partial}{\partial y}(q(x, y)\frac{\partial u}{\partial y})=0$. The remaining term $f$in the wave equation must be $0$ as well. $q(x,y)$ could be any arbitrary function.
+        \\The constant solution is also a solution of the discrete equations:\\
         \begin{equation}
         \begin{split}
         u^{n+1}_{i,j}= \frac{1}{b \Delta t + 2} \{\\  
@@ -146,7 +158,7 @@ u[i, j, 1] = 0.5 * (t1 + t2 + t3)
         &\quad  2\Delta t^2 f^{n}_{i,j} + b \Delta t u^{n-1}_{i,j}+4 u^{n}_{i,j}-2u^{n-1}_{i,j} \}
         \end{split}
         \end{equation}
-        \\\\As $u^{n}_{i,j,n}=c$ :\\\\
+        As $u^{n}_{i,j,n}=c$ :
         \begin{equation}
         \begin{split}
         u^{n+1}_{i,j} = \frac{1}{b \Delta t + 2} \{\\ 
@@ -155,7 +167,7 @@ u[i, j, 1] = 0.5 * (t1 + t2 + t3)
         &\quad  2\Delta t^2 f^{n}_{i,j} + b \Delta t c+4 c-2c \}
         \end{split}
         \end{equation}
-        \\\\As $f^{n}_{i,j,n}=0$ :\\
+        \\As $f^{n}_{i,j,n}=0$ :\\
         $$
         u^{n+1}_{i,j} = \frac{1}{b \Delta t + 2} (2\Delta t^2 0 + b \Delta t c+4 c-2c )
         $$
@@ -163,6 +175,7 @@ u[i, j, 1] = 0.5 * (t1 + t2 + t3)
         u^{n+1}_{i,j} = \frac{1}{b \Delta t + 2} (b \Delta t c+2 c)=c
         $$
         This was implemented. Please run \texttt{nosetests test\_3\_1()}
+        \newpage
         Possible bugs are:
         \begin{itemize}
         \item Arguments of $f$ in the wrong order. Test passes.
